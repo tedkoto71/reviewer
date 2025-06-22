@@ -1,0 +1,243 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Movie Reviewer Job</title>
+  <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', 'Helvetica', sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px 10px 20px; /* Slightly increased top padding */
+      min-height: 100vh;
+    }
+    .job-title {
+      font-size: 2.2em;
+      color: #e50914;
+      margin-bottom: 40px; /* Reduced margin to adjust spacing from top */
+      text-align: center;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    .content-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 1;
+      width: 100%;
+      max-width: 350px;
+    }
+    .section {
+      background: #161616;
+      border-radius: 10px;
+      padding: 15px;
+      width: 100%;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    .section h2 {
+      margin-top: 0;
+      color: #e0e0e0;
+      font-size: 1em;
+      margin-bottom: 10px;
+      font-weight: 600;
+      text-align: center;
+    }
+    .item {
+      background: #1a1a1a;
+      padding: 10px 12px;
+      margin: 8px 0;
+      border-radius: 6px;
+      display: flex;
+      align-items: flex-start;
+      line-height: 1.4;
+    }
+    .item .check {
+      color: #ff7777;
+      margin-right: 8px;
+      font-size: 1.1em;
+      margin-top: 2px;
+    }
+    .item .main-text {
+      color: #e0e0e0;
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 0.9em;
+    }
+    .item .sub-text {
+      color: #ff7777;
+      margin: 0;
+      font-size: 0.85em;
+    }
+    .button {
+      background: #e50914;
+      color: #fff;
+      padding: 15px 30px;
+      border-radius: 25px;
+      font-weight: bold;
+      text-decoration: none;
+      text-align: center;
+      width: 100%;
+      max-width: 350px;
+      font-size: 1em;
+      margin-top: 15px;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .trust-text {
+      text-align: center;
+      color: #ccc;
+      font-size: 0.85em;
+      margin-top: 15px;
+      max-width: 350px;
+      line-height: 1.5;
+    }
+    .popup {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #222;
+      padding: 10px 15px;
+      border-radius: 8px;
+      color: #e0e0e0;
+      box-shadow: 0 0 10px #000;
+      display: none;
+      z-index: 9999;
+      max-width: 250px;
+      display: flex;
+      align-items: center;
+      font-size: 0.85em;
+      line-height: 1.4;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+    .popup.show {
+      opacity: 1;
+      display: flex;
+    }
+    .popup img {
+      width: 18px;
+      margin-right: 8px;
+    }
+    @media(max-width: 640px) {
+      .job-title {
+        font-size: 1.8em;
+      }
+      .content-wrapper {
+        max-width: 100%;
+      }
+      .section, .button, .trust-text {
+        max-width: 100%;
+      }
+      .popup {
+        top: 15px;
+        right: 15px;
+        padding: 8px 12px;
+        max-width: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="job-title">Movie Reviewer Job</div>
+  <div class="content-wrapper">
+    <div class="section">
+      <h2>Quick Start Guide</h2>
+      <div class="item"><span class="check">✔</span><div><div class="main-text">Watch 2-3 Movies</div><div class="sub-text">Earn up to $150 per review</div></div></div>
+      <div class="item"><span class="check">✔</span><div><div class="main-text">Rate Content & Write Review</div><div class="sub-text">Takes 15-20 minutes</div></div></div>
+      <div class="item"><span class="check">✔</span><div><div class="main-text">Get Paid Same Day</div><div class="sub-text">Direct deposit available</div></div></div>
+    </div>
+    <div class="section">
+      <h2>Common Questions</h2>
+      <div class="item"><span class="check">✔</span><div><div class="main-text">How much can I earn?</div><div class="sub-text">$50-$150 per review</div></div></div>
+      <div class="item"><span class="check">✔</span><div><div class="main-text">What do I need to start?</div><div class="sub-text">Basic writing skills</div></div></div>
+      <div class="item"><span class="check">✔</span><div><div class="main-text">When do I get paid?</div><div class="sub-text">Same day payment after each review submission</div></div></div>
+    </div>
+    <a href="https://rewarduplevel.com/aff_c?offer_id=973&aff_id=42125" class="button">Start Reviewing Now →</a>
+    <div class="trust-text">
+      Your Trust Matters<br>
+      We protect your privacy and never share your data. Your information is safe with us.
+    </div>
+  </div>
+
+  <div class="popup" id="popup">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix">
+    <span><span id="name"></span> just earned $<span id="amount"></span>!</span>
+  </div>
+
+  <script>
+    const names = [
+      "John Smith from Texas",
+      "Emily Johnson from California",
+      "Michael Brown from New York",
+      "Sarah Davis from Florida",
+      "Robert Wilson from Ohio"
+    ];
+
+    function getRandomAmount() {
+      return Math.floor(Math.random() * (150 - 50 + 1)) + 50;
+    }
+    function showPopup() {
+      const popup = document.getElementById('popup');
+      const name = names[Math.floor(Math.random() * names.length)];
+      const amount = getRandomAmount();
+      document.getElementById('name').textContent = name;
+      document.getElementById('amount').textContent = amount;
+      popup.classList.add('show');
+      setTimeout(() => popup.classList.remove('show'), 3000);
+    }
+    setInterval(showPopup, 6000);
+    showPopup(); // Show immediately on load
+  </script>
+</body>
+</html>
